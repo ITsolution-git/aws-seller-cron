@@ -6,6 +6,8 @@ var CircularJSON = require("circular-json");
 var ObjectId = require("mongodb").ObjectId;
 var crypto = require("crypto");
 var fs = require("fs-extra");
+var cron = require('node-cron');
+
 
 var URL = process.env.MONGO_URL;
 
@@ -26,6 +28,8 @@ var upload = multer({
     next(err);
   }
 }).single("file");
+
+
 router.get("/:userId", (req, res, next) => {
   var token = req.headers["authorization"];
   if (!req.params.userId) {
@@ -47,10 +51,10 @@ router.get("/:userId", (req, res, next) => {
 });
 
 router.get("/", (req, res, next) => {
-  var token = req.headers["authorization"];
-  if (token == null) {
-    res.status(500).send({ auth: false, message: "No token provided." });
-  }
+  // var token = req.headers["authorization"];
+  // if (token == null) {
+  //   res.status(500).send({ auth: false, message: "No token provided." });
+  // }
   // token = token.split(" ");
   // if (!token[1]) {
   //   return res.status(401).send({ auth: false, message: "No token provided." });
@@ -65,29 +69,53 @@ router.get("/", (req, res, next) => {
         res.json(result);
       });
   });
-});
-router.post("/", (req, res, next) => {
-  var token = req.headers["authorization"];
-  token = token.split(" ");
-  if (!token[1])
-    return res.status(401).send({ auth: false, message: "No token provided." });
-  const { username, password, email } = req.body;
-  var passwordHash = crypto
-    .createHash("md5")
-    .update(password)
-    .digest("hex");
-  //console.log(username, password, email);
-  MongoClient.connect(URL, function(err, db) {
-    if (err) throw err;
-    var collection = db.collection("users");
-    collection
-      .insert({ username: username, password: passwordHash, email: email })
+})
 
-      .then(result => {
-        res.json(result);
+router.post("/", (req, res, next) => {
+  // var token = req.headers["authorization"];
+  // token = token.split(" ");
+  // if (!token[1])
+  //   return res.status(401).send({ auth: false, message: "No token provided." });
+  const { email, sellerId, marketPlaceId, secretKey, awsAccessKeyId } = req.body;
+  var amazonMws = require('amazon-mws')(secretKey, awsAccessKeyId);     
+  amazonMws.orders.search({
+      'Version': '2013-09-01',
+      'Action': 'ListOrders',
+      'SellerId': sellerId,
+      'MarketplaceId.Id.1': marketPlaceId,
+      'LastUpdatedAfter': new Date(2016, 11, 24)
+  }, function (error, response) {
+      if (error) {
+          res.json(error);
+          return;
+      }
+      MongoClient.connect(URL, function(err, db) {
+        if (err) throw err;
+        var collection = db.collection("users");
+        collection.find({ email : email })
+        .toArray()
+        .then(result => {      
+          if (result.length == 0) {
+            collection
+              .insert({ 
+                email : email,
+                seller_id : sellerId, 
+                market_place_id : marketPlaceId,
+                secret_key : secretKey,
+                aws_access_key_id : awsAccessKeyId,
+                last_date : new Date()
+              })
+              .then(c_result => {
+                res.json(c_result);
+              });
+          }
+          else
+            res.status(404).json(result);
+        });
       });
   });
 });
+
 router.put("/:id", (req, res, next) => {
   var token = req.headers["authorization"];
   token = token.split(" ");
@@ -96,18 +124,13 @@ router.put("/:id", (req, res, next) => {
   const id = req.params.id;
   const param = req.body;
   delete param._id;
-  var passwordHash = crypto
-    .createHash("md5")
-    .update(param.password)
-    .digest("hex");
-
   MongoClient.connect(URL, function(err, db) {
     if (err) throw err;
     var collection = db.collection("users");
     collection
       .update(
         { _id: ObjectId(id) },
-        { password: passwordHash, ...param }
+        { ...param }
       )
 
       .then(result => {
@@ -115,6 +138,7 @@ router.put("/:id", (req, res, next) => {
       });
   });
 });
+
 router.delete("/:id", (req, res, next) => {
   var token = req.headers["authorization"];
   token = token.split(" ");
@@ -132,40 +156,4 @@ router.delete("/:id", (req, res, next) => {
   });
 });
 
-
-
-//--------------------------------
-// Upload Profile Image
-//--------------------------------
-
-router.post("/:userId/profile-image", (req, res, next) => {
-  upload(req, res, function(err) {
-    var userId = req.params.userId;
-    if(err){
-      console.log(err)
-    }
-    var extension = req.file.filename.substr(-4);
-    var fileName = userId;
-    fs.rename('./tmp/' + req.file.filename, './tmp/'+ fileName + extension).then(res1=>{
-      fs.move('./tmp/' + fileName + extension, './uploads/'+userId+'/' + fileName + extension, { overwrite: true }).then(result=>{
-        MongoClient.connect(URL, function(err, db) {
-          if (err) throw err;
-          var collection = db.collection("users");
-          collection.findOne({ _id: ObjectId(userId) }).then(result => {
-            if (result != null) {
-              collection
-                .update({ _id: ObjectId(userId) },{$set : {"image": true}})
-                .then(result => {
-                  res.status(200).send({message:'uploaded'})
-                });
-            } else {
-              res.status(401).send({ error: err });
-            }
-          });
-        });
-        
-      })
-    });
-  })
-})
 module.exports = router;

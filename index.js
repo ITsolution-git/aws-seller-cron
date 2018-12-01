@@ -1,6 +1,11 @@
 require('dotenv').config();
 const http = require("http");
 var app = require("./app");
+var cron = require('node-cron');
+var MongoClient = require("mongodb").MongoClient;
+var ObjectId = require("mongodb").ObjectId;
+
+var URL = process.env.MONGO_URL;
 
 const port = process.env.PORT || 3000;
 
@@ -20,6 +25,45 @@ const server = http.createServer(app);
 //   cluster: "us2",
 //   encrypted: true
 // });
+
+MongoClient.connect(URL, function(err, db) {
+    if (err) throw err;
+    var collection = db.collection("users");
+    var users = collection
+      .find({})
+      .toArray()
+      .then(result => {
+        result.map( (res) => {
+			var amazonMws = require('amazon-mws')(res['secret_key'], res['aws_access_key_id']);			
+			// var diff = Math.abs(new Date() - new Date(res['last_date']));
+			// var minutes = Math.floor((diff/1000)/60);
+	        cron.schedule('5 * * * *', () => {
+	         amazonMws.orders.search({
+	             'Version': '2013-09-01',
+	             'Action': 'ListOrders',
+	             'SellerId': res['seller_id'],
+	             // 'MWSAuthToken': 'MWS_AUTH_TOKEN',
+	             'MarketplaceId.Id.1': res['market_place_id'],
+	             'LastUpdatedAfter': res['last_date']
+	         }, function (error, response) {
+	             if (error) {
+	                 console.log('error ', error);
+	                 return;
+	             }
+	             response.Orders.Order.map(console.log);
+	         });
+	        });
+			delete res.last_date;
+		    collection
+		      .update(
+		        { _id: ObjectId(res['_id']) },
+		        { last_date: new Date(), ...res }
+		      )
+        })
+        
+      });
+  });
+
 
 console.log("running on http://localhost:" + port);
 server.listen(port);
