@@ -76,8 +76,8 @@ router.post("/", (req, res, next) => {
   // token = token.split(" ");
   // if (!token[1])
   //   return res.status(401).send({ auth: false, message: "No token provided." });
-  const { email, sellerId, marketPlaceId, secretKey, awsAccessKeyId } = req.body;
-  var amazonMws = require('amazon-mws')(secretKey, awsAccessKeyId);     
+  const { sellerId, marketPlaceId, secretKey, awsAccessKeyId, email } = req.body;
+  var amazonMws = require('amazon-mws')(secretKey, awsAccessKeyId);  
   amazonMws.orders.search({
       'Version': '2013-09-01',
       'Action': 'ListOrders',
@@ -86,7 +86,7 @@ router.post("/", (req, res, next) => {
       'LastUpdatedAfter': new Date(2016, 11, 24)
   }, function (error, response) {
       if (error) {
-          res.json(error);
+          res.status(404).json(error);
           return;
       }
       MongoClient.connect(URL, function(err, db) {
