@@ -34,7 +34,7 @@ MongoClient.connect(URL, function(err, db) {
       .toArray()
       .then(result => {
         result.map( (res) => {
-			var amazonMws = require('amazon-mws')(res['secret_key'], res['aws_access_key_id']);			
+			var amazonMws = require('amazon-mws')(res['aws_access_key_id'], res['secret_key']);			
 			// var diff = Math.abs(new Date() - new Date(res['last_date']));
 			// var minutes = Math.floor((diff/1000)/60);
 	        cron.schedule('5 * * * *', () => {

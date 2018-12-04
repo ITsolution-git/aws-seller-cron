@@ -77,13 +77,13 @@ router.post("/", (req, res, next) => {
   // if (!token[1])
   //   return res.status(401).send({ auth: false, message: "No token provided." });
   const { sellerId, marketPlaceId, secretKey, awsAccessKeyId, email } = req.body;
-  var amazonMws = require('amazon-mws')(secretKey, awsAccessKeyId);  
+  var amazonMws = require('amazon-mws')(awsAccessKeyId, secretKey);  
   amazonMws.orders.search({
       'Version': '2013-09-01',
       'Action': 'ListOrders',
       'SellerId': sellerId,
       'MarketplaceId.Id.1': marketPlaceId,
-      'LastUpdatedAfter': new Date(2016, 11, 24)
+      'LastUpdatedAfter': new Date(2018, 10, 1, )
   }, function (error, response) {
       if (error) {
           res.status(404).json(error);
