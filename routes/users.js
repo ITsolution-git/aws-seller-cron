@@ -7,8 +7,6 @@ var ObjectId = require("mongodb").ObjectId;
 var crypto = require("crypto");
 var fs = require("fs-extra");
 var cron = require('node-cron');
-
-
 var URL = process.env.MONGO_URL;
 
 var storage = multer.diskStorage({
@@ -16,7 +14,6 @@ var storage = multer.diskStorage({
     cb(null, "./tmp/");
   },
   filename: function(req, file, cb) {
-    //var datetimestamp = Date.now();
     cb(null, file.originalname);
   }
 });
@@ -28,7 +25,6 @@ var upload = multer({
     next(err);
   }
 }).single("file");
-
 
 router.get("/:userId", (req, res, next) => {
   var token = req.headers["authorization"];
@@ -86,7 +82,9 @@ router.post("/", (req, res, next) => {
       'LastUpdatedAfter': new Date(2018, 10, 1, )
   }, function (error, response) {
       if (error) {
-          res.status(404).json(error);
+          res.status(404).json({
+            success : 0
+          });
           return;
       }
       MongoClient.connect(URL, function(err, db) {
@@ -106,11 +104,15 @@ router.post("/", (req, res, next) => {
                 last_date : new Date()
               })
               .then(c_result => {
-                res.json(c_result);
+                res.json({
+                  success : 1
+                });
               });
           }
           else
-            res.status(404).json(result);
+            res.status(200).json({
+              success : 1
+            });
         });
       });
   });
@@ -132,7 +134,6 @@ router.put("/:id", (req, res, next) => {
         { _id: ObjectId(id) },
         { ...param }
       )
-
       .then(result => {
         res.json(result);
       });
@@ -146,7 +147,6 @@ router.delete("/:id", (req, res, next) => {
     return res.status(401).send({ auth: false, message: "No token provided." });
   const id = req.params.id;
   const { username, password, email } = req.body;
-  //console.log(username, password, email);
   MongoClient.connect(URL, function(err, db) {
     if (err) throw err;
     var collection = db.collection("users");
