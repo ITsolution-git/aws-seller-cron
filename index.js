@@ -66,7 +66,7 @@ cron.schedule('5 * * * *', () => {
 							    }
 							});  
 							// <quantity> <product name > for <amount> <currency>. 
-							notification.postBody["filters"] = [{"userId": "tag", "value": "10"}];  
+							notification.postBody["filters"] = [{"field": "tag", "key": "userId", "relation": "=" ,"value": ObjectId(res['_id'])}];
 							notification.postBody["included_segments"] = ["Active Users"];    
 							notification.postBody["excluded_segments"] = ["Banned Users"];
 							notification.postBody["data"] = order;
