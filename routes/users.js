@@ -105,12 +105,14 @@ router.post("/", (req, res, next) => {
               })
               .then(c_result => {
                 res.json({
+                  data : c_result['ops'][0],
                   success : 1
                 });
               });
           }
           else
             res.status(200).json({
+              data : result[0],
               success : 1
             });
         });

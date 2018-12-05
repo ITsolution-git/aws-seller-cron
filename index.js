@@ -34,18 +34,18 @@ var myClient = new OneSignal.Client({
 // order.OrderTotal.Amount
 // order.OrderTotal.CurrencyCode
 
-MongoClient.connect(URL, function(err, db) {
-    if (err) throw err;
-    var collection = db.collection("users");
-    var users = collection
-		.find({})
-		.toArray()
-		.then(result => {
-	        result.map( (res) => {
-				var amazonMws = require('amazon-mws')(res['aws_access_key_id'], res['secret_key']);	
-				// var diff = Math.abs(new Date() - new Date(res['last_date']));
-				// var minutes = Math.floor((diff/1000)/60);
-		        cron.schedule('5 * * * *', () => {
+cron.schedule('* * * * * *', () => {
+	MongoClient.connect(URL, function(err, db) {
+	    if (err) throw err;
+	    var collection = db.collection("users");
+	    var users = collection
+			.find({})
+			.toArray()
+			.then(result => {
+		        result.map( (res) => {
+					var amazonMws = require('amazon-mws')(res['aws_access_key_id'], res['secret_key']);	
+					// var diff = Math.abs(new Date() - new Date(res['last_date']));
+					// var minutes = Math.floor((diff/1000)/60);
 		         	amazonMws.orders.search({
 					    'Version': '2013-09-01',
 					    'Action': 'ListOrders',
@@ -66,6 +66,7 @@ MongoClient.connect(URL, function(err, db) {
 							    }
 							});  
 							// <quantity> <product name > for <amount> <currency>. 
+							notification.postBody["filters"] = [{"userId": "tag", "value": "10"}];  
 							notification.postBody["included_segments"] = ["Active Users"];    
 							notification.postBody["excluded_segments"] = ["Banned Users"];
 							notification.postBody["data"] = order;
@@ -78,17 +79,16 @@ MongoClient.connect(URL, function(err, db) {
 						    });
 						});
 					});
-		        });
-				delete res.last_date;
-			    collection
-		      	.update(
-			        { _id: ObjectId(res['_id']) },
-			        { last_date: new Date(), ...res }
-		      	)
-        	})
-      	});
+					delete res.last_date;
+				    collection
+			      	.update(
+				        { _id: ObjectId(res['_id']) },
+				        { last_date: new Date(), ...res }
+			      	)
+	        	})
+	      	});
   	});
-
+});
 
 console.log("running on http://localhost:" + port);
 server.listen(port);
