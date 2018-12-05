@@ -86,7 +86,9 @@ router.post("/", (req, res, next) => {
       'LastUpdatedAfter': new Date(2018, 10, 1, )
   }, function (error, response) {
       if (error) {
-          res.status(404).json(error);
+          res.status(404).json({
+            success : 0
+          });
           return;
       }
       MongoClient.connect(URL, function(err, db) {
@@ -106,11 +108,15 @@ router.post("/", (req, res, next) => {
                 last_date : new Date()
               })
               .then(c_result => {
-                res.json(c_result);
+                res.json({
+                  success : 1
+                });
               });
           }
           else
-            res.status(404).json(result);
+            res.status(200).json({
+              success : 1
+            });
         });
       });
   });
