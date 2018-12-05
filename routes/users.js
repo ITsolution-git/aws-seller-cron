@@ -67,6 +67,8 @@ router.get("/", (req, res, next) => {
   });
 })
 
+
+
 router.post("/", (req, res, next) => {
   // var token = req.headers["authorization"];
   // token = token.split(" ");
@@ -74,13 +76,12 @@ router.post("/", (req, res, next) => {
   //   return res.status(401).send({ auth: false, message: "No token provided." });
   const { sellerId, marketPlaceId, secretKey, awsAccessKeyId, email } = req.body;
   var amazonMws = require('amazon-mws')(awsAccessKeyId, secretKey);  
-  amazonMws.orders.search({
-      'Version': '2013-09-01',
-      'Action': 'ListOrders',
-      'SellerId': sellerId,
-      'MarketplaceId.Id.1': marketPlaceId,
-      'LastUpdatedAfter': new Date(2018, 10, 1, )
-  }, function (error, response) {
+  amazonMws.feeds.search({
+        'Version': '2009-01-01',
+        'Action': 'GetFeedSubmissionList',
+        'SellerId': sellerId,
+        'MWSAuthToken': 'MWS_AUTH_TOKEN'
+    }, function (error, response) {
       if (error) {
           res.status(404).json({
             success : 0

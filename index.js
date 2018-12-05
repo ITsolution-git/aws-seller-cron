@@ -34,7 +34,7 @@ var myClient = new OneSignal.Client({
 // order.OrderTotal.Amount
 // order.OrderTotal.CurrencyCode
 
-cron.schedule('* * * * * *', () => {
+cron.schedule('5 * * * *', () => {
 	MongoClient.connect(URL, function(err, db) {
 	    if (err) throw err;
 	    var collection = db.collection("users");
