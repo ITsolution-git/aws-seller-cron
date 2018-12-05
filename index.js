@@ -52,7 +52,7 @@ MongoClient.connect(URL, function(err, db) {
 					    'SellerId': res['seller_id'],
 					    // 'MWSAuthToken': 'MWS_AUTH_TOKEN',
 		             	'MarketplaceId.Id.1': res['market_place_id'],
-					    'LastUpdatedAfter': new Date(2018, 10, 1, )
+					    'LastUpdatedAfter': res['last_date']
 					}, function (error, response) {
 					    if (error) {
 					        console.log('error ', error);
