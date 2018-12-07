@@ -52,13 +52,14 @@ cron.schedule('5 * * * *', () => {
 					    'SellerId': res['seller_id'],
 					    'MWSAuthToken': res['mws_auth_token'],
 		             	'MarketplaceId.Id.1': res['market_place_id'],
-					    'LastUpdatedAfter': res['last_date']
+					    // 'LastUpdatedAfter': res['last_date']
+					    'LastUpdatedAfter': new Date(2018,11,6,)
 					}, function (error, response) {
 					    if (error) {
 					        console.log('error ', error);
 					        return;
 					    }
-					    // response.Orders.Order.map(console.log);
+					    response.Orders.Order.map(console.log);
 				       	response.Orders.Order.map( (order) => {
 							var notification = new OneSignal.Notification({    
 							    contents: {    
