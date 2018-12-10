@@ -73,7 +73,6 @@ cron.schedule('5 * * * *', () => {
 								title = responseOrderItem.OrderItems.OrderItem.Title
 
 								if (title.length > 20) {
-									console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~', title)
 									title = title.slice(0, 20)
 								}
 
