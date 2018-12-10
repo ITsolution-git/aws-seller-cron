@@ -70,17 +70,11 @@ cron.schedule('5 * * * *', () => {
 							    'AmazonOrderId' : order['AmazonOrderId']
 							}, function(error, responseOrderItem){
 
-								title = responseOrderItem.OrderItems.OrderItem.Title
-
-								if (title.length > 20) {
-									title = title.slice(0, 20)
-								}
-
 								if (responseOrderItem.OrderItems.OrderItem.QuantityOrdered != 0){
 
 									var notification = new OneSignal.Notification({    
 									    contents: {    
-									        en: responseOrderItem.OrderItems.OrderItem.QuantityOrdered + ' ' + title
+									        en: responseOrderItem.OrderItems.OrderItem.QuantityOrdered + ' ' + (responseOrderItem.OrderItems.OrderItem.Title.length > 20 ? responseOrderItem.OrderItems.OrderItem.Title.slice(0, 20) : responseOrderItem.OrderItems.OrderItem.Title)
 													+  (order.OrderTotal? ' for ' + order.OrderTotal.Amount  + ' ' + order.OrderTotal.CurrencyCode : ''),
 									    },
 									    title: 'New Order'
