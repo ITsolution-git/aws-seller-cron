@@ -52,8 +52,8 @@ cron.schedule('5 * * * *', () => {
 					    'SellerId': res['seller_id'],
 					    'MWSAuthToken': res['mws_auth_token'],
 		             	'MarketplaceId.Id.1': res['market_place_id'],
-					    // 'LastUpdatedAfter': res['last_date']
-					    'LastUpdatedAfter': new Date(2018,11,6,)
+					    'LastUpdatedAfter': res['last_date']
+					    // 'LastUpdatedAfter': new Date(2018,11,6,)
 					}, function (error, response) {
 					    if (error) {
 					        console.log('error ', error);
@@ -61,20 +61,17 @@ cron.schedule('5 * * * *', () => {
 					    }
 					    // response.Orders.Order.map(console.log);
 				       	response.Orders.Order.map( (order) => {
-
-				       		amazonMws.orders.search({
-							    'Version': '2013-09-01',
-							    'Action': 'ListOrderItems',
-							    'SellerId': res['seller_id'],
-							    'MWSAuthToken': res['mws_auth_token'],
-							    'AmazonOrderId' : order['AmazonOrderId']
-							}, function(error, responseOrderItem){
-
-								if (responseOrderItem.OrderItems.OrderItem.QuantityOrdered != 0){
-
+				       		if (order['OrderStatus'] != 'Shipped'){
+					       		amazonMws.orders.search({
+								    'Version': '2013-09-01',
+								    'Action': 'ListOrderItems',
+								    'SellerId': res['seller_id'],
+								    'MWSAuthToken': res['mws_auth_token'],
+								    'AmazonOrderId' : order['AmazonOrderId']
+								}, function(error, responseOrderItem){
 									var notification = new OneSignal.Notification({    
 									    contents: {    
-									        en: responseOrderItem.OrderItems.OrderItem.QuantityOrdered + ' ' + (responseOrderItem.OrderItems.OrderItem.Title.length > 20 ? responseOrderItem.OrderItems.OrderItem.Title.slice(0, 20) : responseOrderItem.OrderItems.OrderItem.Title)
+									        en: responseOrderItem.OrderItems.OrderItem.QuantityOrdered + ' ' + (responseOrderItem.OrderItems.OrderItem.Title.length > 20? responseOrderItem.OrderItems.OrderItem.Title.slice(0,20)+'...' : responseOrderItem.OrderItems.OrderItem.Title)
 													+  (order.OrderTotal? ' for ' + order.OrderTotal.Amount  + ' ' + order.OrderTotal.CurrencyCode : ''),
 									    },
 									    title: 'New Order'
@@ -90,8 +87,8 @@ cron.schedule('5 * * * *', () => {
 								    .catch(function (err) {
 								        console.log('Something went wrong...', err);
 								    });
-								}
-							})
+								})
+				       		}
 						});
 					});
 					delete res.last_date;
