@@ -69,27 +69,36 @@ cron.schedule('5 * * * *', () => {
 							    'MWSAuthToken': res['mws_auth_token'],
 							    'AmazonOrderId' : order['AmazonOrderId']
 							}, function(error, responseOrderItem){
-								var notification = new OneSignal.Notification({    
-								    contents: {    
-								        en: responseOrderItem.OrderItems.OrderItem.QuantityOrdered + ' ' + responseOrderItem.OrderItems.OrderItem.Title 
-												+  (order.OrderTotal? ' for ' + order.OrderTotal.Amount  + ' ' + order.OrderTotal.CurrencyCode : ''),
-								    },
-								    title: 'New Order'
-								});  
-								// <quantity> <product name > for <amount> <currency>. 
-								notification.postBody["filters"] = [{"field": "tag", "key": "userId", "relation": "=" ,"value": ObjectId(res['_id'])}];
-								notification.postBody["included_segments"] = ["Active Users"];    
-								notification.postBody["excluded_segments"] = ["Banned Users"];								
-								myClient.sendNotification(notification)
-							    .then(function (response) {
-							        console.log(response.data, response.httpResponse.statusCode);
-							    })
-							    .catch(function (err) {
-							        console.log('Something went wrong...', err);
-							    });
-								
-							})
 
+								title = responseOrderItem.OrderItems.OrderItem.Title
+
+								if (title.length > 20) {
+									console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~', title)
+									title = title.slice(0, 20)
+								}
+
+								if (responseOrderItem.OrderItems.OrderItem.QuantityOrdered != 0){
+
+									var notification = new OneSignal.Notification({    
+									    contents: {    
+									        en: responseOrderItem.OrderItems.OrderItem.QuantityOrdered + ' ' + title
+													+  (order.OrderTotal? ' for ' + order.OrderTotal.Amount  + ' ' + order.OrderTotal.CurrencyCode : ''),
+									    },
+									    title: 'New Order'
+									});  
+									// <quantity> <product name > for <amount> <currency>. 
+									notification.postBody["filters"] = [{"field": "tag", "key": "userId", "relation": "=" ,"value": ObjectId(res['_id'])}];
+									notification.postBody["included_segments"] = ["Active Users"];    
+									notification.postBody["excluded_segments"] = ["Banned Users"];								
+									myClient.sendNotification(notification)
+								    .then(function (response) {
+								        console.log(response.data, response.httpResponse.statusCode);
+								    })
+								    .catch(function (err) {
+								        console.log('Something went wrong...', err);
+								    });
+								}
+							})
 						});
 					});
 					delete res.last_date;
