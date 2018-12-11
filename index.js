@@ -63,7 +63,7 @@ cron.schedule('5 * * * *', () => {
 					       		let responseOrderItem = await amazonMws.orders.search({
 								    'Version': '2013-09-01',
 								    'Action': 'ListOrderItems',
-								    'SellerId': res['seller_id'],
+						    		'SellerId': res['seller_id'],
 								    'MWSAuthToken': res['mws_auth_token'],
 								    'AmazonOrderId' : order['AmazonOrderId'],
 								}); 
@@ -77,16 +77,21 @@ cron.schedule('5 * * * *', () => {
 								        'SellerSKU': responseOrderItem.OrderItems.OrderItem.SellerSKU,
 								        'ItemCondition': 'New'
 								    });
+								    // console.log('#############', product)
+								    // console.log('@@@@@@@@@@@@@', product.Summary.BuyBoxPrices.BuyBoxPrice)
+								 	// LandedPrice: { CurrencyCode: 'USD', Amount: '8.00' },
+									// ListingPrice: { CurrencyCode: 'USD', Amount: '8.00' },
+									// Shipping: { CurrencyCode: 'USD', Amount: '0.00' } }
 									var notification = new OneSignal.Notification({    
 									    contents: {    
 									        en: responseOrderItem.OrderItems.OrderItem.QuantityOrdered + ' ' + (responseOrderItem.OrderItems.OrderItem.Title.length > 20? responseOrderItem.OrderItems.OrderItem.Title.slice(0,20)+'...' : responseOrderItem.OrderItems.OrderItem.Title) + 
-									        	' for ' + ( parseFloat(product.Summary.ListPrice.Amount) * parseInt(responseOrderItem.OrderItems.OrderItem.QuantityOrdered) ).toString() + ' ' + product.Summary.ListPrice.CurrencyCode
+									        	' for ' + ( parseFloat(product.Summary.BuyBoxPrices.BuyBoxPrice.ListingPrice.Amount) * parseInt(responseOrderItem.OrderItems.OrderItem.QuantityOrdered) ).toString() + ' ' + product.Summary.BuyBoxPrices.BuyBoxPrice.ListingPrice.CurrencyCode
 									    },
 									    title: 'New Order'
 									});  
 									notification.postBody["filters"] = [{"field": "tag", "key": "userId", "relation": "=" ,"value": ObjectId(res['_id'])}];
 									notification.postBody["included_segments"] = ["Active Users"];    
-									notification.postBody["excluded_segments"] = ["Banned Users"];								
+									notification.postBody["excluded_segments"] = ["Banned Users"];
 									myClient.sendNotification(notification)
 								    .then(function (response) {
 								        console.log(response.data, response.httpResponse.statusCode);
