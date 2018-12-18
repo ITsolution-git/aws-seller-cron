@@ -131,8 +131,8 @@ function runCron() {
 									});
 									console.log(message);
 									notification.postBody["filters"] = [{"field": "tag", "key": "userId", "relation": "=" ,"value": ObjectId(res['_id'])}];
-									notification.postBody["included_segments"] = ["Active Users"];    
-									notification.postBody["excluded_segments"] = ["Banned Users"];
+									// notification.postBody["included_segments"] = ["Active Users"];    
+									// notification.postBody["excluded_segments"] = ["Banned Users"];
 									myClient.sendNotification(notification)
 								    .then(function (response) {
 								        console.log(response.data, response.httpResponse.statusCode);
