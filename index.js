@@ -17,10 +17,10 @@ var myClient = new OneSignal.Client({
 });  
 
 // A1QXOO488UYCC3
-// runCron();
-// cron.schedule('*/3 * * * *', () => {
-// 	runCron();
-// });
+runCron();
+cron.schedule('*/3 * * * *', () => {
+	runCron();
+});
 
 
 function runCron() {
@@ -130,7 +130,7 @@ function runCron() {
 									    title: 'New Order'
 									});
 									console.log(message);
-									// notification.postBody["filters"] = [{"field": "tag", "key": "userId", "relation": "=" ,"value": ObjectId(res['_id'])}];
+									notification.postBody["filters"] = [{"field": "tag", "key": "userId", "relation": "=" ,"value": ObjectId(res['_id'])}];
 									notification.postBody["included_segments"] = ["Active Users"];    
 									notification.postBody["excluded_segments"] = ["Banned Users"];
 									myClient.sendNotification(notification)
