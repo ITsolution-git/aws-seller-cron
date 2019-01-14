@@ -49,7 +49,7 @@ function runCron() {
 				             	// 'LastUpdatedAfter': moment(res['last_date']).format(),
 							    'CreatedAfter': moment(res['last_date']).subtract(3, 'minutes').format(),
 							    'CreatedBefore': moment().subtract(3, 'minutes').format(),
-							    // 'CreatedAfter': '2018-12-17T10:04:01-05:00',
+							    // 'CreatedAfter': '2019-01-01T10:04:01-05:00',
 							    // 'CreatedBefore': '2018-12-17T10:09:01-05:00',
 							    
 							    // 'CreatedAfter': moment().subtract(3, 'minutes').format(),
@@ -131,8 +131,8 @@ function runCron() {
 									});
 									console.log(message);
 									notification.postBody["filters"] = [{"field": "tag", "key": "userId", "relation": "=" ,"value": ObjectId(res['_id'])}];
-									// notification.postBody["included_segments"] = ["Active Users"];    
-									// notification.postBody["excluded_segments"] = ["Banned Users"];
+									notification.postBody["included_segments"] = ["Active Users"];    
+									notification.postBody["excluded_segments"] = ["Banned Users"];
 									myClient.sendNotification(notification)
 								    .then(function (response) {
 								        console.log(response.data, response.httpResponse.statusCode);
